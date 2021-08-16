@@ -1,7 +1,7 @@
 from flask import Flask
 from environs import Env
 from os import environ
-from Kenzie import image
+from kenzie import image
 
 env = Env()
 env.read_env()
