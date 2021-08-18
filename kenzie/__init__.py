@@ -1,6 +1,7 @@
 import os
+from os import environ
 
-create_folder = os.system('ls | grep -q upload')
-if create_folder:
-    os.mkdir('upload/')
-    os.system("/bin/bash -c 'mkdir -p image_bank/{jpg,png,gif}'")
+FILES_DIRECTORY = environ.get('FILES_DIRECTORY')
+
+if not os.path.exists(FILES_DIRECTORY):
+    os.system("/bin/bash -c 'mkdir -p image_bank/{jpeg,png,gif}'")

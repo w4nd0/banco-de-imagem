@@ -1,36 +1,31 @@
-from flask import Flask, request, jsonify, send_from_directory
-from environs import Env
+from flask import request, jsonify, send_from_directory
 from os import environ
 import os
-from urllib.error import HTTPError
 
-env = Env()
-env.read_env()
 
 FILES_DIRECTORY = environ.get('FILES_DIRECTORY')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'gif'}
+ALLOWED_EXTENSIONS = ['png', 'jpeg', 'gif']
 
-app = Flask(__name__)
 
 def upload_file():
-    """Faz o upload da image verificando: o tamanho máximo (1MB), a extensão (JPG, PNG e GIF)
-     e a existencia de uma imagem a ser enviada.
+    """Faz o upload da image verificando: o tamanho máximo (1MB), a extensão
+    (JPG, PNG e GIF) e a existencia de uma imagem a ser enviada.
 
     Returns:
-        dict: Retorna uma mensagem de sucesso caso o envio seja realizado, juntamente com código
-        de status de resposta.
+        dict: Retorna uma mensagem de sucesso caso o envio seja realizado,
+        juntamente com código de status de resposta.
     """
     try:
         key_file_name = list(request.files.keys())[0]
-        img = request.files[key_file_name] 
+        img = request.files[key_file_name]
         name_file = img.filename.replace(' ', '_')
-        list_upload = os.listdir('upload/') 
-        
-        if name_file in list_upload:
+        files = [filenames for _, _, filenames in os.walk(f'{FILES_DIRECTORY}')]
+        extension_file = img.content_type.split('/')[1]
+        if name_file in files:
             raise FileExistsError
 
-        if img.content_type.split('/')[1] in ALLOWED_EXTENSIONS:
-            img.save(f"upload/{name_file}")
+        if extension_file in ALLOWED_EXTENSIONS:
+            img.save(f"{FILES_DIRECTORY}{extension_file}/{name_file}")
             return {"message": "Upload realizado com sucesso!"}, 201
         else:
             raise TypeError
@@ -44,12 +39,14 @@ def upload_file():
     except FileExistsError:
         return {"message": "Arquivo já se encontra no banco de imagens"}, 409
 
+
 def get_files():
-    """Faz uma requisição para receber uma lista com todas as imagens contidos no banco de imagem.
+    """Faz uma requisição para receber uma lista com todas as imagens contidos
+        no banco de imagem.
 
     Returns:
-        tuple: Retorna uma lista com todas as imagens na pasta image_bank, juntamente com código
-        de status de resposta.
+        tuple: Retorna uma lista com todas as imagens na pasta image_bank, 
+        juntamente com código de status de resposta.
     """
     files = [filenames for _, _, filenames in os.walk(f'{FILES_DIRECTORY}')]
     flat_list = [item for sublist in files for item in sublist]
@@ -78,6 +75,7 @@ def get_files_by_type(type):
     except FileNotFoundError:
         return {"message": f"Opção de extensão {type} não existente"}, 404
 
+
 def download_filename(file_name):
     """Baixa a imagem solicitada pelo usuário.
 
@@ -92,6 +90,7 @@ def download_filename(file_name):
     except Exception:
         return {"message": "Arquivo não existente"}, 404
 
+
 def download_zip():
     """Baixa um arquivo zip com todas as imagens com a extensão passada pelo usuario
 
@@ -100,16 +99,19 @@ def download_zip():
          de status de resposta.
     """  
     file_type = request.args.get("file_type")
-    compression_rate = request.args.get("compression_rate" , 6)
+    compression_rate = request.args.get("compression_rate", 6)
 
     try:
         files = os.listdir(f'./{FILES_DIRECTORY}{file_type}/')
         if len(files) == 0:
             raise FileNotFoundError
+        
+        from datetime import datetime
+        tmp_filename = str(datetime.utcnow()).split('.')[-1]
+        tmp_patch = f'files_{file_type}_{tmp_filename}.zip'
+        os.system(f"cd {FILES_DIRECTORY} && zip -{compression_rate} /tmp/{tmp_patch} ./{file_type}/*")
 
-        os.system(f"zip -{compression_rate} -r /tmp/files.zip ./{FILES_DIRECTORY}{file_type}/*")
-
-        return send_from_directory(directory='/tmp', path='files.zip', as_attachment=True), 200
+        return send_from_directory(directory='/tmp', path=tmp_patch, as_attachment=True), 200
 
     except FileNotFoundError:
         return {"message": "Não existem imagens com a extensão solicitada"}, 404

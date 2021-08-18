@@ -3,8 +3,6 @@ from environs import Env
 from os import environ
 from kenzie import image
 
-env = Env()
-env.read_env()
 
 MAX_CONTENT_LENGTH = eval(environ.get('MAX_CONTENT_LENGTH'))
 
