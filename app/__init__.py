@@ -1,5 +1,4 @@
 from flask import Flask
-from environs import Env
 from os import environ
 from kenzie import image
 
@@ -7,6 +6,7 @@ from kenzie import image
 MAX_CONTENT_LENGTH = eval(environ.get('MAX_CONTENT_LENGTH'))
 
 app = Flask(__name__)
+
 
 @app.route('/upload', methods=["POST"])
 def post_file():

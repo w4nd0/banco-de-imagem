@@ -55,7 +55,6 @@ def get_files():
     return jsonify(dict_list), 200
 
 
-
 def get_files_by_type(type):
     """Faz uma requisição para receber uma lista com todas as imagens com a extensão solicitada 
     pelo usuário.
