@@ -1,5 +1,9 @@
 import os
 from os import environ
+from environs import Env
+
+env = Env()
+env.read_env()
 
 FILES_DIRECTORY = environ.get('FILES_DIRECTORY')
 
