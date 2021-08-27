@@ -1,4 +1,5 @@
 from app import app
+import filecmp
 
 
 def app_client():
@@ -34,12 +35,13 @@ def test_list_files_by_type():
 
 def test_request_file_download():
     client = app_client()
-
     response = client.get("/download/test.gif")
     with open('./test/download_test/test.gif', 'wb') as f:
         f.write(response.data)
+    file_was_downloaded = filecmp.cmp('./test/download_test/test.gif', './test/upload_test/kenzie.gif')
 
-    assert response.status_code == 200
+    assert response.status_code == 200, 'Download falhou'
+    assert file_was_downloaded, 'Download falhou'
 
 
 def test_request_type_zipfiles_download():
@@ -48,5 +50,5 @@ def test_request_type_zipfiles_download():
     response = client.get("/download-zip?file_type=gif")
     with open('./test/download_test/test.zip', 'wb') as f:
         f.write(response.data)
-
+    
     assert response.status_code == 200
